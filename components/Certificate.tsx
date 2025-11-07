@@ -50,12 +50,10 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share(shareData);
       } else {
-        // Fallback for devices that claim to have navigator.share but can't share files.
         handleDownload();
       }
     } catch (err) {
       console.error("Error al compartir el certificado:", err);
-      // Let the user know sharing failed and they can download instead.
     } finally {
         setIsSharing(false);
     }
@@ -123,7 +121,7 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
                 onClick={onReset}
                 className="w-full px-6 py-4 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-1 transition-all duration-300"
               >
-                Comenzar un Nuevo Reto
+                Cerrar Sesión
               </button>
             </div>
         </>
@@ -135,7 +133,7 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
                 onClick={onReset}
                 className="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-orange-600 text-white font-bold rounded-lg shadow-lg hover:shadow-red-500/50 transform hover:-translate-y-1 transition-all duration-300"
             >
-                Volver a Empezar
+                Cerrar Sesión y Volver a Empezar
             </button>
          </div>
        )}
