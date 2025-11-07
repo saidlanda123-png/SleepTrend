@@ -1,63 +1,59 @@
-
 import React, { useState, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
 import Dashboard from './components/Dashboard';
 import Certificate from './components/Certificate';
 import { CHALLENGES } from './constants';
 
-const App: React.FC = () => {
-  const [userName, setUserName] = useState<string | null>(null);
-  const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
-  const [isAppReady, setIsAppReady] = useState<boolean>(false);
+// Custom hook para manejar la persistencia del estado en localStorage.
+// Centraliza la lógica de lectura/escritura, haciendo el componente más limpio y la persistencia más robusta.
+function usePersistentState<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+  const [state, setState] = useState<T>(() => {
+    try {
+      const storedValue = localStorage.getItem(key);
+      if (storedValue === null) {
+        return initialValue;
+      }
+      // Intenta parsear como JSON. Si falla, asume que es un string crudo
+      // por retrocompatibilidad con el formato antiguo del nombre de usuario.
+      try {
+        return JSON.parse(storedValue);
+      } catch {
+        return storedValue as unknown as T;
+      }
+    } catch (error) {
+      console.error(`Error al leer la clave “${key}” de localStorage:`, error);
+      return initialValue;
+    }
+  });
 
   useEffect(() => {
     try {
-      const storedName = localStorage.getItem('sleepChallengeUser');
-      const storedCompleted = localStorage.getItem('sleepChallengeCompleted');
-      if (storedName) {
-        setUserName(storedName);
-      }
-      if (storedCompleted) {
-        setCompletedChallenges(JSON.parse(storedCompleted));
-      }
+      // Ahora siempre guarda como un string JSON para mayor consistencia.
+      localStorage.setItem(key, JSON.stringify(state));
     } catch (error) {
-      console.error("Error reading from localStorage", error);
-    } finally {
-      setIsAppReady(true);
+      console.error(`Error al establecer la clave “${key}” en localStorage:`, error);
     }
-  }, []);
+  }, [key, state]);
 
-  useEffect(() => {
-    if (userName) {
-      try {
-        localStorage.setItem('sleepChallengeUser', userName);
-      } catch (error) {
-        console.error("Error writing to localStorage", error);
-      }
-    }
-  }, [userName]);
+  return [state, setState];
+}
 
-  useEffect(() => {
-    if (isAppReady) {
-      try {
-        localStorage.setItem('sleepChallengeCompleted', JSON.stringify(completedChallenges));
-      } catch (error) {
-        console.error("Error writing to localStorage", error);
-      }
-    }
-  }, [completedChallenges, isAppReady]);
-  
+
+const App: React.FC = () => {
+  const [userName, setUserName] = usePersistentState<string | null>('sleepChallengeUser', null);
+  const [completedChallenges, setCompletedChallenges] = usePersistentState<string[]>('sleepChallengeCompleted', []);
 
   const handleLogin = (name: string) => {
     if (name.trim()) {
+      // Si un nuevo usuario inicia sesión, o el mismo "reinicia", se resetea el progreso.
       setUserName(name.trim());
       setCompletedChallenges([]);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('sleepChallengeUser');
-    localStorage.removeItem('sleepChallengeCompleted');
+    // El hook usePersistentState se encargará de limpiar el localStorage
+    // cuando el estado se establezca a sus valores iniciales.
     setUserName(null);
     setCompletedChallenges([]);
   };
@@ -71,14 +67,6 @@ const App: React.FC = () => {
   };
   
   const allChallengesCompleted = completedChallenges.length === CHALLENGES.length;
-
-  if (!isAppReady) {
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-900">
-            <div className="text-2xl font-bold text-cyan-400">Cargando...</div>
-        </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100">

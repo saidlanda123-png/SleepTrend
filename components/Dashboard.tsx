@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ChallengeCard from './ChallengeCard';
 import { CHALLENGES } from '../constants';
@@ -13,12 +12,16 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, onToggleChallenge, onLogout }) => {
   const progress = (completedChallenges.length / CHALLENGES.length) * 100;
 
+  const welcomeSubtitle = completedChallenges.length > 0 && completedChallenges.length < CHALLENGES.length
+    ? "¡Qué bueno verte de nuevo! Sigamos con el reto."
+    : "Bienvenido a tu reto de 7 días. ¡Tú puedes!";
+
   return (
     <div className="animate-fade-in">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold">¡Hola, {userName}!</h1>
-          <p className="text-slate-400 mt-1">Bienvenido a tu reto de 7 días. ¡Tú puedes!</p>
+          <p className="text-slate-400 mt-1">{welcomeSubtitle}</p>
         </div>
         <button 
           onClick={onLogout}
