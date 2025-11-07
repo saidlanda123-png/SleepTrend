@@ -1,74 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import LoginScreen from './components/LoginScreen';
 import Dashboard from './components/Dashboard';
 import Certificate from './components/Certificate';
+import PublicProfilePage from './components/PublicProfilePage';
 import { CHALLENGES } from './constants';
-import { onAuthStateChange, logout } from './services/authService';
-import { getUserProgress, updateUserProgress } from './services/firestoreService';
-import type { User } from 'firebase/auth';
+import { usePersistentState } from './hooks/usePersistentState';
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userName, setUserName] = usePersistentState<string | null>('userName', null);
+  const [completedChallenges, setCompletedChallenges] = usePersistentState<string[]>('completedChallenges', []);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        const progress = await getUserProgress(firebaseUser.uid);
-        setCompletedChallenges(progress);
-      } else {
-        setUser(null);
-        setCompletedChallenges([]);
-      }
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await logout();
-    // El listener onAuthStateChange se encargará de actualizar el estado
+  const handleLogin = (name: string) => {
+    if (name.trim()) {
+      setUserName(name.trim());
+    }
   };
 
-  const toggleChallenge = async (challengeId: string) => {
-    if (!user) return;
+  const handleReset = () => {
+    setUserName(null);
+    setCompletedChallenges([]);
+  };
 
+  const toggleChallenge = (challengeId: string) => {
     const newCompletedChallenges = completedChallenges.includes(challengeId)
       ? completedChallenges.filter(id => id !== challengeId)
       : [...completedChallenges, challengeId];
-    
-    setCompletedChallenges(newCompletedChallenges); // Actualización optimista de la UI
-    await updateUserProgress(user.uid, newCompletedChallenges);
+    setCompletedChallenges(newCompletedChallenges);
   };
-  
+
+  const path = window.location.pathname;
+  if (path.startsWith('/profile')) {
+    return <PublicProfilePage />;
+  }
+
   const allChallengesCompleted = completedChallenges.length === CHALLENGES.length;
 
   const renderContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-xl text-slate-400">Cargando...</div>
-        </div>
-      );
-    }
-
-    if (!user) {
-      return <LoginScreen />;
+    if (!userName) {
+      return <LoginScreen onLogin={handleLogin} />;
     }
 
     if (allChallengesCompleted) {
-      return <Certificate userName={user.displayName || 'Héroe del Sueño'} onReset={handleLogout} />;
+      return <Certificate userName={userName} onReset={handleReset} />;
     }
 
     return (
       <Dashboard
-        user={user}
+        userName={userName}
         completedChallenges={completedChallenges}
         onToggleChallenge={toggleChallenge}
-        onLogout={handleLogout}
+        onReset={handleReset}
       />
     );
   };

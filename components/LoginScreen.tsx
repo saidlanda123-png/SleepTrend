@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
 import { SunIcon, MoonIcon } from './icons/Icons';
-import { signInWithGoogle } from '../services/authService';
-
-const GoogleIcon = () => (
-  <svg className="w-6 h-6" viewBox="0 0 48 48">
-    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path>
-    <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path>
-    <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.223 0-9.641-3.657-11.303-8.591l-6.571 4.819C9.656 39.663 16.318 44 24 44z"></path>
-    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.012 35.195 44 30.027 44 24c0-1.341-.138-2.65-.389-3.917z"></path>
-  </svg>
-);
 
 const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   <div 
@@ -39,22 +29,18 @@ const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   </div>
 );
 
+interface LoginScreenProps {
+  onLogin: (name: string) => void;
+}
 
-const LoginScreen: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+  const [name, setName] = useState('');
   const [showAboutModal, setShowAboutModal] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      await signInWithGoogle();
-      // El listener onAuthStateChanged en App.tsx se encargará de la redirección
-    } catch (err) {
-      console.error("Error de inicio de sesión:", err);
-      setError("No se pudo iniciar sesión. Por favor, intenta de nuevo.");
-      setIsLoading(false);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onLogin(name.trim());
     }
   };
 
@@ -74,22 +60,24 @@ const LoginScreen: React.FC = () => {
             Únete al reto de 7 días y descubre el impacto de una buena higiene del sueño.
           </p>
           
-          <button
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            className="w-full mt-4 px-6 py-4 bg-slate-100 text-slate-800 font-bold rounded-lg shadow-lg hover:shadow-white/20 transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-4"
-          >
-            {isLoading ? (
-              <span>Autenticando...</span>
-            ) : (
-              <>
-                <GoogleIcon />
-                <span>Iniciar Sesión con Google</span>
-              </>
-            )}
-          </button>
-
-          {error && <p className="mt-4 text-red-400">{error}</p>}
+          <form onSubmit={handleSubmit} className="w-full">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Escribe tu nombre para empezar"
+              className="w-full px-6 py-4 bg-slate-800/70 border-2 border-slate-700 rounded-lg text-lg text-center placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none transition-all"
+              required
+              aria-label="Tu nombre"
+            />
+            <button
+              type="submit"
+              className="w-full mt-4 px-6 py-4 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              disabled={!name.trim()}
+            >
+              Comenzar Reto
+            </button>
+          </form>
 
           <div className="mt-8">
             <button

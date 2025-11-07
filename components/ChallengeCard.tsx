@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Challenge } from '../types';
 import { CheckIcon } from './icons/Icons';
@@ -7,15 +6,16 @@ interface ChallengeCardProps {
   challenge: Challenge;
   isCompleted: boolean;
   onToggleComplete: (id: string) => void;
+  readOnly?: boolean;
 }
 
-const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, isCompleted, onToggleComplete }) => {
+const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, isCompleted, onToggleComplete, readOnly = false }) => {
   const Icon = challenge.icon;
 
   return (
     <div className={`
       bg-slate-800/50 border border-slate-700 rounded-xl p-6 transition-all duration-300
-      flex flex-col justify-between
+      flex flex-col justify-between h-full
       ${isCompleted ? 'ring-2 ring-cyan-500 bg-slate-800' : 'hover:border-slate-600 hover:bg-slate-800/70'}
     `}>
       <div>
@@ -29,25 +29,27 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, isCompleted, o
           </div>
         </div>
       </div>
-      <button
-        onClick={() => onToggleComplete(challenge.id)}
-        className={`
-          w-full mt-6 py-3 px-4 rounded-lg font-semibold transition-all duration-300
-          flex items-center justify-center gap-2
-          ${isCompleted 
-            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
-            : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}
-        `}
-      >
-        {isCompleted ? (
-          <>
-            <CheckIcon className="w-5 h-5" />
-            <span>Completado</span>
-          </>
-        ) : (
-          <span>Marcar como completado</span>
-        )}
-      </button>
+      {!readOnly && (
+        <button
+          onClick={() => onToggleComplete(challenge.id)}
+          className={`
+            w-full mt-6 py-3 px-4 rounded-lg font-semibold transition-all duration-300
+            flex items-center justify-center gap-2
+            ${isCompleted 
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+              : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}
+          `}
+        >
+          {isCompleted ? (
+            <>
+              <CheckIcon className="w-5 h-5" />
+              <span>Completado</span>
+            </>
+          ) : (
+            <span>Marcar como completado</span>
+          )}
+        </button>
+      )}
     </div>
   );
 };

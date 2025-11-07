@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ChallengeCard from './ChallengeCard';
 import { CHALLENGES } from '../constants';
-import type { User } from 'firebase/auth';
+import { LinkIcon } from './icons/Icons';
 
 interface DashboardProps {
-  user: User;
+  userName: string;
   completedChallenges: string[];
   onToggleChallenge: (id: string) => void;
-  onLogout: () => void;
+  onReset: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, completedChallenges, onToggleChallenge, onLogout }) => {
+const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, onToggleChallenge, onReset }) => {
+  const [copied, setCopied] = useState(false);
   const progress = (completedChallenges.length / CHALLENGES.length) * 100;
+
+  const handleShare = () => {
+    const nameData = btoa(encodeURIComponent(userName));
+    const progressData = completedChallenges.join(',');
+    const shareUrl = `${window.location.origin}/profile?name=${nameData}&progress=${progressData}`;
+    
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      alert('No se pudo copiar el enlace. Por favor, cópialo manualmente.');
+    });
+  };
 
   const welcomeSubtitle = completedChallenges.length > 0 && completedChallenges.length < CHALLENGES.length
     ? "¡Qué bueno verte de nuevo! Sigamos con el reto."
@@ -21,15 +36,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, completedChallenges, onTogg
     <div className="animate-fade-in">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold">¡Hola, {user.displayName || 'Héroe del Sueño'}!</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">¡Hola, {userName}!</h1>
           <p className="text-slate-400 mt-1">{welcomeSubtitle}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={onLogout}
-            className="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-sm"
+           <button 
+            onClick={handleShare}
+            className="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-sm flex items-center gap-2"
           >
-            Salir
+            <LinkIcon className="w-4 h-4" />
+            {copied ? '¡Copiado!' : 'Compartir Progreso'}
+          </button>
+          <button 
+            onClick={onReset}
+            className="px-4 py-2 bg-red-900/50 text-red-400 rounded-lg hover:bg-red-800/50 transition-colors text-sm"
+          >
+            Reiniciar
           </button>
         </div>
       </header>
