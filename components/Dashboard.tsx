@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ChallengeCard from './ChallengeCard';
 import { CHALLENGES } from '../constants';
+import { LinkIcon } from './icons/Icons';
 
 interface DashboardProps {
   userName: string;
@@ -11,24 +12,52 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, onToggleChallenge, onLogout }) => {
   const progress = (completedChallenges.length / CHALLENGES.length) * 100;
+  const [copied, setCopied] = useState(false);
 
   const welcomeSubtitle = completedChallenges.length > 0 && completedChallenges.length < CHALLENGES.length
     ? "¡Qué bueno verte de nuevo! Sigamos con el reto."
     : "Bienvenido a tu reto de 7 días. ¡Tú puedes!";
 
+  const handleShareProfile = () => {
+    const dataToEncode = {
+      name: userName,
+      completed: completedChallenges,
+    };
+    const encodedData = btoa(JSON.stringify(dataToEncode));
+    const shareableLink = `${window.location.origin}/public/${encodedData}`;
+    
+    navigator.clipboard.writeText(shareableLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }).catch(err => {
+      console.error('No se pudo copiar el enlace: ', err);
+      alert('No se pudo copiar el enlace. Por favor, cópialo manualmente.');
+    });
+  };
+
   return (
     <div className="animate-fade-in">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold">¡Hola, {userName}!</h1>
           <p className="text-slate-400 mt-1">{welcomeSubtitle}</p>
         </div>
-        <button 
-          onClick={onLogout}
-          className="mt-4 sm:mt-0 px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-sm"
-        >
-          Salir
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleShareProfile}
+            className="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-sm flex items-center gap-2"
+            title="Copiar enlace para compartir tu progreso"
+          >
+            <LinkIcon className="w-4 h-4" />
+            <span>{copied ? '¡Enlace Copiado!' : 'Compartir Progreso'}</span>
+          </button>
+          <button 
+            onClick={onLogout}
+            className="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-sm"
+          >
+            Salir
+          </button>
+        </div>
       </header>
 
       <div className="mb-8">

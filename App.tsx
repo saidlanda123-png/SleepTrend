@@ -1,20 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import LoginScreen from './components/LoginScreen';
 import Dashboard from './components/Dashboard';
 import Certificate from './components/Certificate';
+import PublicProfilePage from './components/PublicProfilePage';
 import { CHALLENGES } from './constants';
 
 // Custom hook para manejar la persistencia del estado en localStorage.
-// Centraliza la lógica de lectura/escritura, haciendo el componente más limpio y la persistencia más robusta.
 function usePersistentState<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
-  const [state, setState] = useState<T>(() => {
+  const [state, setState] = React.useState<T>(() => {
     try {
       const storedValue = localStorage.getItem(key);
-      if (storedValue === null) {
-        return initialValue;
-      }
-      // Intenta parsear como JSON. Si falla, asume que es un string crudo
-      // por retrocompatibilidad con el formato antiguo del nombre de usuario.
+      if (storedValue === null) return initialValue;
       try {
         return JSON.parse(storedValue);
       } catch {
@@ -26,9 +22,8 @@ function usePersistentState<T>(key: string, initialValue: T): [T, React.Dispatch
     }
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     try {
-      // Ahora siempre guarda como un string JSON para mayor consistencia.
       localStorage.setItem(key, JSON.stringify(state));
     } catch (error) {
       console.error(`Error al establecer la clave “${key}” en localStorage:`, error);
@@ -38,22 +33,39 @@ function usePersistentState<T>(key: string, initialValue: T): [T, React.Dispatch
   return [state, setState];
 }
 
-
 const App: React.FC = () => {
   const [userName, setUserName] = usePersistentState<string | null>('sleepChallengeUser', null);
   const [completedChallenges, setCompletedChallenges] = usePersistentState<string[]>('sleepChallengeCompleted', []);
 
+  // Simple enrutador del lado del cliente
+  const { pathname } = window.location;
+
+  if (pathname.startsWith('/public/')) {
+    const encodedData = pathname.substring('/public/'.length);
+    try {
+      const decodedJson = atob(encodedData);
+      const publicData = JSON.parse(decodedJson);
+      // Valida que los datos decodificados tengan la estructura esperada
+      if (publicData && typeof publicData.name === 'string' && Array.isArray(publicData.completed)) {
+        return <PublicProfilePage data={publicData} />;
+      }
+    } catch (error) {
+      console.error("Error al decodificar los datos del perfil público:", error);
+      // Redirige a la página principal si el enlace está corrupto o es inválido
+       window.location.href = '/';
+       return null;
+    }
+  }
+
+  // --- Lógica principal de la aplicación ---
   const handleLogin = (name: string) => {
     if (name.trim()) {
-      // Si un nuevo usuario inicia sesión, o el mismo "reinicia", se resetea el progreso.
       setUserName(name.trim());
       setCompletedChallenges([]);
     }
   };
 
   const handleLogout = () => {
-    // El hook usePersistentState se encargará de limpiar el localStorage
-    // cuando el estado se establezca a sus valores iniciales.
     setUserName(null);
     setCompletedChallenges([]);
   };
