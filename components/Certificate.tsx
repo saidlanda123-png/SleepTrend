@@ -8,49 +8,104 @@ interface CertificateProps {
 
 // Este componente renderiza el certificado como un SVG.
 // Se usa React.forwardRef para pasar la ref al elemento SVG subyacente.
-const CertificateSVG: React.ForwardRefRenderFunction<SVGSVGElement, { userName: string }> = ({ userName }, ref) => (
+const CertificateSVG: React.ForwardRefRenderFunction<SVGSVGElement, { userName: string; date: string }> = ({ userName, date }, ref) => (
   <svg
     ref={ref}
-    width="500"
-    height="500"
-    viewBox="0 0 500 500"
+    width="800"
+    height="600"
+    viewBox="0 0 800 600"
     xmlns="http://www.w3.org/2000/svg"
     className="w-full h-full object-contain rounded-lg animate-fade-in"
   >
     <defs>
       <linearGradient id="cert-background" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#0f172a" />
+        <stop offset="0%" stopColor="#020617" />
         <stop offset="100%" stopColor="#1e1b4b" />
       </linearGradient>
-      <linearGradient id="cert-accent" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#22d3ee" />
-        <stop offset="100%" stopColor="#8b5cf6" />
+      <linearGradient id="neon-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#06b6d4" />
+        <stop offset="100%" stopColor="#c026d3" />
       </linearGradient>
+      <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+       <filter id="star-glow">
+        <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+        <feMerge>
+          <feMergeNode in="coloredBlur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
     </defs>
-    <rect width="100%" height="100%" fill="url(#cert-background)" rx="16" />
-    <rect x="10" y="10" width="480" height="480" fill="none" stroke="#475569" strokeWidth="2" rx="10" />
-    <rect x="15" y="15" width="470" height="470" fill="none" stroke="url(#cert-accent)" strokeWidth="1.5" strokeOpacity="0.5" rx="8" />
 
-    <text x="50%" y="80" fontFamily="Inter, sans-serif" fontSize="32" fontWeight="bold" fill="url(#cert-accent)" textAnchor="middle">
-      Certificado de Logro
+    {/* Fondo Galáctico */}
+    <rect width="100%" height="100%" fill="url(#cert-background)" />
+
+    {/* Estrellas */}
+    <g opacity="0.7" filter="url(#star-glow)">
+      <circle cx="120" cy="90" r="2" fill="#fff" /><circle cx="750" cy="450" r="2" fill="#fff" />
+      <circle cx="180" cy="200" r="1.5" fill="#fff" /><circle cx="680" cy="150" r="1.5" fill="#fff" />
+      <circle cx="90" cy="450" r="1" fill="#fff" /><circle cx="650" cy="550" r="1" fill="#fff" />
+      <circle cx="220" cy="500" r="2" fill="#fff" /><circle cx="50" cy="50" r="1.5" fill="#fff" />
+      <circle cx="350" cy="80" r="1.5" fill="#fff" /><circle cx="450" cy="520" r="1.5" fill="#fff" />
+      <circle cx="400" cy="300" r="2.5" fill="#fff" /><circle cx="380" cy="550" r="2" fill="#fff" />
+      <circle cx="580" cy="80" r="1" fill="#fff" /><circle cx="280" cy="320" r="1" fill="#fff" />
+    </g>
+
+    {/* Marco Futurista */}
+    <g stroke="url(#neon-accent)" strokeWidth="2" fill="none" opacity="0.6">
+        <path d="M 20 50 L 20 20 L 50 20" />
+        <path d="M 780 50 L 780 20 L 750 20" />
+        <path d="M 20 550 L 20 580 L 50 580" />
+        <path d="M 780 550 L 780 580 L 750 580" />
+    </g>
+    <rect x="10" y="10" width="780" height="580" fill="none" stroke="#475569" strokeWidth="1" strokeOpacity="0.5" />
+
+
+    {/* Contenido */}
+    <text x="50%" y="80" fontFamily="Inter, sans-serif" fontSize="32" fontWeight="bold" fill="#f1f5f9" textAnchor="middle" letterSpacing="1">
+      Sello de Honor del Sueño Profundo
+    </text>
+    <line x1="200" y1="105" x2="600" y2="105" stroke="url(#neon-accent)" strokeWidth="1" opacity="0.5" />
+
+    {/* Nombre de Usuario con Efecto Neón */}
+    <g transform="translate(0, 40)">
+        <text x="50%" y="270" fontFamily="Inter, sans-serif" fontSize="80" fontWeight="900" fill="#06b6d4" textAnchor="middle" filter="url(#neon-glow)" opacity="0.8">
+          {userName}
+        </text>
+        <text x="50%" y="270" fontFamily="Inter, sans-serif" fontSize="80" fontWeight="900" fill="white" textAnchor="middle">
+          {userName}
+        </text>
+    </g>
+
+
+    <text x="50%" y="400" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="18" fill="#cbd5e1" letterSpacing="0.5">
+      <tspan x="50%" dy="0">Por Dominar el Desafío de 7 Días de Sueño Óptimo</tspan>
+      <tspan x="50%" dy="1.5em">y establecer un ritmo circadiano perfecto.</tspan>
+    </text>
+    
+    {/* Footer */}
+    <g transform="translate(0, 550)">
+      <text x="150" y="0" fontFamily="Inter, sans-serif" fontSize="14" fill="#94a3b8" textAnchor="middle">
+        {date}
+      </text>
+      <line x1="280" y1="-8" x2="520" y2="-8" stroke="#475569" strokeWidth="1" />
+      <text x="400" y="0" fontFamily="Inter, sans-serif" fontSize="16" fontWeight="bold" fill="#94a3b8" textAnchor="middle">
+        SleepTrend
+      </text>
+       <text x="650" y="0" fontFamily="Inter, sans-serif" fontSize="14" fill="#94a3b8" textAnchor="middle">
+        #SleepTrendMaster
+      </text>
+    </g>
+
+    <text x="50%" y="500" fontFamily="Inter, sans-serif" fontSize="20" fontWeight="600" fill="url(#neon-accent)" textAnchor="middle">
+      ¡Comparte tu Conquista Nocturna!
     </text>
 
-    <text x="50%" y="130" fontFamily="Inter, sans-serif" fontSize="16" fill="#94a3b8" textAnchor="middle">
-      Otorgado a
-    </text>
-
-    <text x="50%" y="220" fontFamily="Inter, sans-serif" fontSize="48" fontWeight="800" fill="white" textAnchor="middle">
-      {userName}
-    </text>
-
-    <text x="50%" y="290" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="18" fill="#cbd5e1">
-      <tspan x="50%" dy="0">Por conquistar el</tspan>
-      <tspan x="50%" dy="1.4em">Reto de Sueño Saludable</tspan>
-    </text>
-
-    <text x="50%" y="420" fontFamily="Inter, sans-serif" fontSize="16" fontWeight="500" fill="#64748b" textAnchor="middle">
-      SleepTrend
-    </text>
   </svg>
 );
 const ForwardedCertificateSVG = React.forwardRef(CertificateSVG);
@@ -59,6 +114,7 @@ const ForwardedCertificateSVG = React.forwardRef(CertificateSVG);
 const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const completionDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
   // Convierte el SVG a un Blob de PNG usando un Canvas
   const getPngBlob = async (): Promise<Blob | null> => {
@@ -67,7 +123,7 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
     return new Promise((resolve) => {
       const svgElement = svgRef.current!;
       const svgString = new XMLSerializer().serializeToString(svgElement);
-      const url = `data:image/svg+xml;base64,${btoa(svgString)}`;
+      const url = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
 
       const img = new Image();
       img.onload = () => {
@@ -103,7 +159,7 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
       const file = new File([blob], `certificado-${userName.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
       const shareData = {
         title: `¡Completé el Reto Sueño Saludable!`,
-        text: `¡${userName} ha completado el reto de 7 días para mejorar sus hábitos de sueño! #RetoSueñoSaludable`,
+        text: `¡${userName} ha dominado el Reto de 7 Días de Sueño Óptimo! #SleepTrendMaster`,
         files: [file],
       };
 
@@ -142,15 +198,15 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <div className="w-full max-w-lg aspect-square bg-slate-800 border-2 border-slate-700 rounded-2xl shadow-2xl shadow-cyan-500/20 flex items-center justify-center p-4">
-        <ForwardedCertificateSVG userName={userName} ref={svgRef} />
+      <div className="w-full max-w-2xl aspect-[4/3] bg-slate-800 border-2 border-slate-700 rounded-2xl shadow-2xl shadow-cyan-500/20 flex items-center justify-center p-2 md:p-4">
+        <ForwardedCertificateSVG userName={userName} date={completionDate} ref={svgRef} />
       </div>
       
       <>
         <h2 className="text-2xl text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500 mt-8 mb-2">
           ¡Felicitaciones, {userName}!
         </h2>
-        <p className="mb-6 text-slate-400 text-center">¡Comparte tu épico logro en redes sociales!</p>
+        <p className="mb-6 text-slate-400 text-center">Has obtenido el Sello de Honor del Sueño Profundo.</p>
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg">
           {navigator.share && (
               <button
@@ -173,8 +229,14 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
             disabled={isProcessing}
             className="flex-1 px-6 py-3 bg-slate-700 text-white font-bold rounded-lg shadow-lg hover:bg-slate-600 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait disabled:transform-none"
           >
-            <DownloadIcon className="w-5 h-5" />
-            <span>Descargar Imagen</span>
+            {isProcessing ? (
+                'Procesando...'
+              ) : (
+                <>
+                    <DownloadIcon className="w-5 h-5" />
+                    <span>Descargar Imagen</span>
+                </>
+            )}
           </button>
         </div>
           <div className="mt-4 w-full max-w-lg">

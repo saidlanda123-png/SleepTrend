@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export interface Challenge {
@@ -6,4 +5,6 @@ export interface Challenge {
   title: string;
   description: string;
   icon: React.FC<{ className?: string }>;
+  badgeTitle: string;
+  badgeColor: string;
 }
