@@ -176,7 +176,7 @@ export const RANKS: Rank[] = [
   {
     name: 'Iniciado del Descanso',
     color: '#cd7f32', // Bronce
-    threshold: 1,
+    threshold: 0,
   },
   {
     name: 'Guardián del Sueño',

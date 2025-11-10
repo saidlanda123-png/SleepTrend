@@ -1,9 +1,69 @@
 import React, { useState } from 'react';
 import ChallengeCard from './ChallengeCard';
-import { CHALLENGES } from '../constants';
-import { LinkIcon } from './icons/Icons';
+import { CHALLENGES, RANKS } from '../constants';
+import { LinkIcon, BadgeIcon } from './icons/Icons';
 import AchievementModal from './AchievementModal';
 import type { Challenge } from '../types';
+import BadgeSVG from './BadgeSVG';
+
+interface BadgesModalProps {
+  completedChallenges: string[];
+  userName: string;
+  onClose: () => void;
+}
+
+const BadgesModal: React.FC<BadgesModalProps> = ({ completedChallenges, userName, onClose }) => {
+  const earnedBadges: Challenge[] = CHALLENGES.filter(challenge =>
+    completedChallenges.includes(challenge.id)
+  );
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="badges-title"
+    >
+      <div
+        className="relative bg-slate-800/90 border border-slate-700 rounded-2xl max-w-2xl w-full shadow-2xl shadow-violet-500/20 flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-slate-700 text-center">
+          <h2 id="badges-title" className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500">
+            Mis Insignias Conseguidas
+          </h2>
+        </div>
+
+        <div className="p-6 flex-grow overflow-y-auto max-h-[70vh]">
+          {earnedBadges.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {earnedBadges.map(challenge => (
+                <div key={challenge.id} className="animate-fade-in">
+                  <BadgeSVG challenge={challenge} userName={userName} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-400 text-center py-8">
+              Aún no has conseguido ninguna insignia. ¡Completa tu primer reto para empezar tu colección!
+            </p>
+          )}
+        </div>
+
+        <div className="p-6 border-t border-slate-700 bg-slate-800/50 rounded-b-2xl">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-lg transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 interface DashboardProps {
   userName: string;
@@ -15,6 +75,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, onToggleChallenge, onReset }) => {
   const [copied, setCopied] = useState(false);
   const [showAchievementModalFor, setShowAchievementModalFor] = useState<{ challenge: Challenge; totalCompleted: number; } | null>(null);
+  const [showBadgesModal, setShowBadgesModal] = useState(false);
   const progress = (completedChallenges.length / CHALLENGES.length) * 100;
 
   const handleToggleChallenge = (challengeId: string) => {
@@ -53,6 +114,8 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
   const welcomeSubtitle = completedChallenges.length > 0 && completedChallenges.length < CHALLENGES.length
     ? "¡Qué bueno verte de nuevo! Sigamos con el reto."
     : `Bienvenido al Reto Sueño Saludable. ¡Tú puedes!`;
+  
+  const currentRank = RANKS.slice().reverse().find(r => completedChallenges.length >= r.threshold)!;
 
   return (
     <>
@@ -78,6 +141,26 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
             </button>
           </div>
         </header>
+
+        <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-5 flex flex-col justify-center">
+            <h3 className="text-sm font-semibold text-slate-400 mb-2">Rango Actual</h3>
+            <p className="text-2xl font-bold" style={{ color: currentRank.color }}>
+              {currentRank.name}
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowBadgesModal(true)}
+            className="bg-slate-800/70 border border-slate-700 rounded-xl p-5 flex items-center justify-between hover:bg-slate-800 transition-colors text-left group"
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-slate-400 mb-2">Insignias Conseguidas</h3>
+              <p className="text-2xl font-bold text-cyan-400">{completedChallenges.length}</p>
+            </div>
+            <BadgeIcon className="w-12 h-12 text-slate-600 group-hover:text-cyan-400 transition-colors" />
+          </button>
+        </div>
+
 
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
@@ -142,6 +225,13 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
           totalCompleted={showAchievementModalFor.totalCompleted}
           userName={userName}
           onClose={() => setShowAchievementModalFor(null)}
+        />
+      )}
+      {showBadgesModal && (
+        <BadgesModal
+          completedChallenges={completedChallenges}
+          userName={userName}
+          onClose={() => setShowBadgesModal(false)}
         />
       )}
     </>
