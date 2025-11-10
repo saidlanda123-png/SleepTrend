@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { generateCertificateImage } from '../services/geminiService';
+import React, { useRef, useState } from 'react';
 import { ShareIcon, DownloadIcon } from './icons/Icons';
 
 interface CertificateProps {
@@ -7,38 +6,99 @@ interface CertificateProps {
   onReset: () => void;
 }
 
+// Este componente renderiza el certificado como un SVG.
+// Se usa React.forwardRef para pasar la ref al elemento SVG subyacente.
+const CertificateSVG: React.ForwardRefRenderFunction<SVGSVGElement, { userName: string }> = ({ userName }, ref) => (
+  <svg
+    ref={ref}
+    width="500"
+    height="500"
+    viewBox="0 0 500 500"
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-full h-full object-contain rounded-lg animate-fade-in"
+  >
+    <defs>
+      <linearGradient id="cert-background" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#0f172a" />
+        <stop offset="100%" stopColor="#1e1b4b" />
+      </linearGradient>
+      <linearGradient id="cert-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#22d3ee" />
+        <stop offset="100%" stopColor="#8b5cf6" />
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#cert-background)" rx="16" />
+    <rect x="10" y="10" width="480" height="480" fill="none" stroke="#475569" strokeWidth="2" rx="10" />
+    <rect x="15" y="15" width="470" height="470" fill="none" stroke="url(#cert-accent)" strokeWidth="1.5" strokeOpacity="0.5" rx="8" />
+
+    <text x="50%" y="80" fontFamily="Inter, sans-serif" fontSize="32" fontWeight="bold" fill="url(#cert-accent)" textAnchor="middle">
+      Certificado de Logro
+    </text>
+
+    <text x="50%" y="130" fontFamily="Inter, sans-serif" fontSize="16" fill="#94a3b8" textAnchor="middle">
+      Otorgado a
+    </text>
+
+    <text x="50%" y="220" fontFamily="Inter, sans-serif" fontSize="48" fontWeight="800" fill="white" textAnchor="middle">
+      {userName}
+    </text>
+
+    <text x="50%" y="290" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="18" fill="#cbd5e1">
+      <tspan x="50%" dy="0">Por conquistar el</tspan>
+      <tspan x="50%" dy="1.4em">Reto de Sueño Saludable</tspan>
+    </text>
+
+    <text x="50%" y="420" fontFamily="Inter, sans-serif" fontSize="16" fontWeight="500" fill="#64748b" textAnchor="middle">
+      SleepTrend
+    </text>
+  </svg>
+);
+const ForwardedCertificateSVG = React.forwardRef(CertificateSVG);
+
+
 const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSharing, setIsSharing] = useState<boolean>(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const base64Image = await generateCertificateImage(userName);
-        setImageUrl(`data:image/png;base64,${base64Image}`);
-      } catch (err) {
-        setError('No se pudo generar tu certificado. ¡Pero tu logro es real!');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Convierte el SVG a un Blob de PNG usando un Canvas
+  const getPngBlob = async (): Promise<Blob | null> => {
+    if (!svgRef.current) return null;
 
-    fetchImage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userName]);
-  
+    return new Promise((resolve) => {
+      const svgElement = svgRef.current!;
+      const svgString = new XMLSerializer().serializeToString(svgElement);
+      const url = `data:image/svg+xml;base64,${btoa(svgString)}`;
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = 2; // Para mejor resolución
+        canvas.width = svgElement.width.baseVal.value * scale;
+        canvas.height = svgElement.height.baseVal.value * scale;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+        
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, 'image/png');
+      };
+      img.onerror = () => {
+        resolve(null);
+      };
+      img.src = url;
+    });
+  };
+
   const handleShare = async () => {
-    if (!imageUrl || !navigator.share) return;
+    if (!navigator.share) return;
     
-    setIsSharing(true);
+    setIsProcessing(true);
     try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
+      const blob = await getPngBlob();
+      if (!blob) throw new Error("No se pudo generar el blob de la imagen.");
 
       const file = new File([blob], `certificado-${userName.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
       const shareData = {
@@ -50,95 +110,82 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share(shareData);
       } else {
-        // Fallback for browsers that can't share files (like desktop)
-        handleDownload();
+        handleDownload(); // Fallback
       }
     } catch (err) {
       console.error("Error al compartir el certificado:", err);
+      alert("No se pudo compartir la imagen. Intenta descargarla.");
     } finally {
-        setIsSharing(false);
+        setIsProcessing(false);
     }
   };
 
-  const handleDownload = () => {
-    if (!imageUrl) return;
+  const handleDownload = async () => {
+    setIsProcessing(true);
+    const blob = await getPngBlob();
+    setIsProcessing(false);
+
+    if (!blob) {
+      alert("No se pudo generar la imagen para descargar.");
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = imageUrl;
+    link.href = url;
     link.download = `certificado-${userName.replace(/\s+/g, '-')}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen animate-fade-in p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-lg aspect-square bg-slate-800 border-2 border-slate-700 rounded-2xl shadow-2xl shadow-cyan-500/20 flex items-center justify-center p-4">
-        {loading && (
-            <div className="text-center">
-                <div className="animate-pulse text-slate-400 text-lg">Estamos diseñando tu certificado personalizado...</div>
-                <p className="text-slate-500 mt-2">Esto puede tardar unos segundos.</p>
-            </div>
-        )}
-        {error && !loading && <p className="text-red-400 text-center p-4">{error}</p>}
-        {imageUrl && !loading && (
-            <img 
-                src={imageUrl} 
-                alt={`Certificado para ${userName}`}
-                className="w-full h-full object-contain rounded-lg animate-fade-in"
-            />
-        )}
+        <ForwardedCertificateSVG userName={userName} ref={svgRef} />
       </div>
       
-      {!loading && imageUrl && (
-        <>
-          <p className="mt-8 text-slate-400">¡Comparte tu épico logro en redes sociales!</p>
-          <div className="mt-4 flex flex-col sm:flex-row gap-4 w-full max-w-lg">
-            {navigator.share && (
-                <button
-                onClick={handleShare}
-                disabled={isSharing}
-                className="flex-1 px-6 py-3 bg-slate-700 text-white font-bold rounded-lg shadow-lg hover:bg-slate-600 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait disabled:transform-none"
-              >
-                {isSharing ? (
-                  'Procesando...'
-                ) : (
-                  <>
-                    <ShareIcon className="w-5 h-5" />
-                    <span>Compartir</span>
-                  </>
-                )}
-              </button>
-            )}
-            <button
-              onClick={handleDownload}
-              className="flex-1 px-6 py-3 bg-slate-700 text-white font-bold rounded-lg shadow-lg hover:bg-slate-600 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2"
+      <>
+        <h2 className="text-2xl text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500 mt-8 mb-2">
+          ¡Felicitaciones, {userName}!
+        </h2>
+        <p className="mb-6 text-slate-400 text-center">¡Comparte tu épico logro en redes sociales!</p>
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg">
+          {navigator.share && (
+              <button
+              onClick={handleShare}
+              disabled={isProcessing}
+              className="flex-1 px-6 py-3 bg-slate-700 text-white font-bold rounded-lg shadow-lg hover:bg-slate-600 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait disabled:transform-none"
             >
-              <DownloadIcon className="w-5 h-5" />
-              <span>Descargar Imagen</span>
+              {isProcessing ? (
+                'Procesando...'
+              ) : (
+                <>
+                  <ShareIcon className="w-5 h-5" />
+                  <span>Compartir</span>
+                </>
+              )}
+            </button>
+          )}
+          <button
+            onClick={handleDownload}
+            disabled={isProcessing}
+            className="flex-1 px-6 py-3 bg-slate-700 text-white font-bold rounded-lg shadow-lg hover:bg-slate-600 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait disabled:transform-none"
+          >
+            <DownloadIcon className="w-5 h-5" />
+            <span>Descargar Imagen</span>
+          </button>
+        </div>
+          <div className="mt-4 w-full max-w-lg">
+            <button
+              onClick={onReset}
+              className="w-full px-6 py-4 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-1 transition-all duration-300"
+            >
+              Comenzar un Nuevo Reto
             </button>
           </div>
-           <div className="mt-4 w-full max-w-lg">
-             <button
-                onClick={onReset}
-                className="w-full px-6 py-4 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-1 transition-all duration-300"
-              >
-                Comenzar un Nuevo Reto
-              </button>
-            </div>
-        </>
-      )}
-      
-       {!loading && error && (
-         <div className="mt-8 w-full max-w-lg">
-            <button
-                onClick={onReset}
-                className="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-orange-600 text-white font-bold rounded-lg shadow-lg hover:shadow-red-500/50 transform hover:-translate-y-1 transition-all duration-300"
-            >
-                Empezar de Nuevo
-            </button>
-         </div>
-       )}
-
+      </>
     </div>
   );
 };
