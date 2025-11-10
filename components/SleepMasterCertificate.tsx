@@ -80,11 +80,17 @@ const SleepMasterCertificateSVG: React.ForwardRefRenderFunction<SVGSVGElement, {
     </text>
     
     {/* Footer */}
-    <g transform="translate(0, 550)">
+    <g transform="translate(0, 540)">
       <text x="150" y="0" fontFamily="Inter, sans-serif" fontSize="14" fill="#a5b4fc" textAnchor="middle">
         {date}
       </text>
       <line x1="280" y1="-8" x2="520" y2="-8" stroke="#475569" strokeWidth="1" />
+      <text x="400" y="0" fontFamily="Inter, sans-serif" fontSize="16" fontWeight="bold" fill="#a5b4fc" textAnchor="middle">
+        SleepTrend
+      </text>
+      <text x="400" y="18" fontFamily="Inter, sans-serif" fontSize="12" fill="#818cf8" textAnchor="middle">
+        Creado por Brayan Said Rivera Landa
+      </text>
        <text x="650" y="0" fontFamily="Inter, sans-serif" fontSize="14" fill="#a5b4fc" textAnchor="middle">
         #SleepTrendMaster
       </text>

@@ -25,6 +25,9 @@ const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
       <p className="text-slate-300 text-lg leading-relaxed">
         SleepTrend es el proyecto de Educación para la Salud diseñado por estudiantes para estudiantes. Monitorea tus patrones de sueño, entiende cómo impactan tu rendimiento académico y salud física, y establece metas de descanso alcanzables. ¡Transforma tu "ZzZ" en tu mejor estrategia de estudio!
       </p>
+      <p className="text-slate-400 text-sm mt-6">
+        Creado con dedicación por <span className="font-semibold text-slate-300">Brayan Said Rivera Landa</span>.
+      </p>
     </div>
   </div>
 );
