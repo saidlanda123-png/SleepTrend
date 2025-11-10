@@ -99,7 +99,7 @@ const CertificateSVG: React.ForwardRefRenderFunction<SVGSVGElement, { userName: 
         SleepTrend
       </text>
       <text x="400" y="18" fontFamily="Inter, sans-serif" fontSize="12" fill="#64748b" textAnchor="middle">
-        Creado por Brayan Said Rivera Landa
+        Creado por Said Rivera
       </text>
        <text x="650" y="0" fontFamily="Inter, sans-serif" fontSize="14" fill="#94a3b8" textAnchor="middle">
         #SleepTrendMaster
