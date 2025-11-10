@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ChallengeCard from './ChallengeCard';
 import { CHALLENGES, RANKS } from '../constants';
-import { LinkIcon, BadgeIcon, TrophyIcon } from './icons/Icons';
+import { BadgeIcon, TrophyIcon } from './icons/Icons';
 import AchievementModal from './AchievementModal';
 import type { Challenge } from '../types';
 import BadgeSVG from './BadgeSVG';
@@ -74,7 +74,6 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, onToggleChallenge, onReset }) => {
-  const [copied, setCopied] = useState(false);
   const [showAchievementModalFor, setShowAchievementModalFor] = useState<{ challenge: Challenge; totalCompleted: number; } | null>(null);
   const [showBadgesModal, setShowBadgesModal] = useState(false);
   const [showRanksModal, setShowRanksModal] = useState(false);
@@ -93,20 +92,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
         }
       }, 350); // Small delay for the animation
     }
-  };
-
-  const handleShare = () => {
-    const nameData = btoa(encodeURIComponent(userName));
-    const progressData = completedChallenges.join(',');
-    const shareUrl = `${window.location.origin}/profile?name=${nameData}&progress=${progressData}`;
-    
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-      alert('No se pudo copiar el enlace. Por favor, cópialo manualmente.');
-    });
   };
   
   const easyChallenges = CHALLENGES.filter(c => c.difficulty === 'Fácil');
@@ -128,13 +113,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
             <p className="text-slate-400 mt-1">{welcomeSubtitle}</p>
           </div>
           <div className="flex items-center gap-2">
-            <button 
-              onClick={handleShare}
-              className="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-sm flex items-center gap-2"
-            >
-              <LinkIcon className="w-4 h-4" />
-              {copied ? '¡Copiado!' : 'Compartir Progreso'}
-            </button>
             <button 
               onClick={onReset}
               className="px-4 py-2 bg-red-900/50 text-red-400 rounded-lg hover:bg-red-800/50 transition-colors text-sm"
@@ -163,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
           >
             <div>
               <h3 className="text-sm font-semibold text-slate-400 mb-2">Insignias Conseguidas</h3>
-              <p className="text-2xl font-bold text-cyan-400">{completedChallenges.length}</p>
+              <p className="text-xl font-bold text-cyan-400">{completedChallenges.length}</p>
             </div>
             <BadgeIcon className="w-12 h-12 text-slate-600 group-hover:text-cyan-400 transition-colors" />
           </button>
