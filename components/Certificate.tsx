@@ -4,6 +4,7 @@ import { ShareIcon, DownloadIcon } from './icons/Icons';
 interface CertificateProps {
   userName: string;
   onReset: () => void;
+  onContinue: () => void;
 }
 
 // Este componente renderiza el certificado como un SVG.
@@ -103,7 +104,7 @@ const CertificateSVG: React.ForwardRefRenderFunction<SVGSVGElement, { userName: 
     </g>
 
     <text x="50%" y="500" fontFamily="Inter, sans-serif" fontSize="20" fontWeight="600" fill="url(#neon-accent)" textAnchor="middle">
-      ¡Comparte tu Conquista Nocturna!
+      ¡Primer Hito Alcanzado!
     </text>
 
   </svg>
@@ -111,7 +112,7 @@ const CertificateSVG: React.ForwardRefRenderFunction<SVGSVGElement, { userName: 
 const ForwardedCertificateSVG = React.forwardRef(CertificateSVG);
 
 
-const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
+const Certificate: React.FC<CertificateProps> = ({ userName, onReset, onContinue }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const completionDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -156,10 +157,10 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
       const blob = await getPngBlob();
       if (!blob) throw new Error("No se pudo generar el blob de la imagen.");
 
-      const file = new File([blob], `certificado-${userName.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
+      const file = new File([blob], `certificado-7dias-${userName.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
       const shareData = {
-        title: `¡Completé el Reto Sueño Saludable!`,
-        text: `¡${userName} ha dominado el Reto de 7 Días de Sueño Óptimo! #SleepTrendMaster`,
+        title: `¡Completé el Reto de 7 Días de Sueño Saludable!`,
+        text: `¡${userName} ha dominado el Reto de 7 Días de Sueño Óptimo! #SleepTrend`,
         files: [file],
       };
 
@@ -189,7 +190,7 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `certificado-${userName.replace(/\s+/g, '-')}.png`;
+    link.download = `certificado-7dias-${userName.replace(/\s+/g, '-')}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -206,7 +207,7 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
         <h2 className="text-2xl text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500 mt-8 mb-2">
           ¡Felicitaciones, {userName}!
         </h2>
-        <p className="mb-6 text-slate-400 text-center">Has obtenido el Sello de Honor del Sueño Profundo.</p>
+        <p className="mb-6 text-slate-400 text-center">Has completado 7 desafíos y ganado tu primer sello.</p>
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg">
           {navigator.share && (
               <button
@@ -241,12 +242,18 @@ const Certificate: React.FC<CertificateProps> = ({ userName, onReset }) => {
         </div>
           <div className="mt-4 w-full max-w-lg">
             <button
-              onClick={onReset}
+              onClick={onContinue}
               className="w-full px-6 py-4 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-1 transition-all duration-300"
             >
-              Comenzar un Nuevo Reto
+              Continuar Reto
             </button>
           </div>
+          <button
+            onClick={onReset}
+            className="w-full text-center mt-4 text-sm text-slate-500 hover:text-red-400 transition-colors"
+          >
+            O reiniciar todo el progreso
+          </button>
       </>
     </div>
   );

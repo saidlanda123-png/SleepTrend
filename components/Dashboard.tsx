@@ -14,7 +14,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, onToggleChallenge, onReset }) => {
   const [copied, setCopied] = useState(false);
-  const [showAchievementModalFor, setShowAchievementModalFor] = useState<Challenge | null>(null);
+  const [showAchievementModalFor, setShowAchievementModalFor] = useState<{ challenge: Challenge; totalCompleted: number; } | null>(null);
   const progress = (completedChallenges.length / CHALLENGES.length) * 100;
 
   const handleToggleChallenge = (challengeId: string) => {
@@ -25,7 +25,8 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
       setTimeout(() => {
         const challenge = CHALLENGES.find(c => c.id === challengeId);
         if (challenge) {
-          setShowAchievementModalFor(challenge);
+          const newCompletedCount = completedChallenges.length + 1;
+          setShowAchievementModalFor({ challenge, totalCompleted: newCompletedCount });
         }
       }, 350); // Small delay for the animation
     }
@@ -44,10 +45,14 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
       alert('No se pudo copiar el enlace. Por favor, cópialo manualmente.');
     });
   };
+  
+  const easyChallenges = CHALLENGES.filter(c => c.difficulty === 'Fácil');
+  const mediumChallenges = CHALLENGES.filter(c => c.difficulty === 'Intermedio');
+  const hardChallenges = CHALLENGES.filter(c => c.difficulty === 'Difícil');
 
   const welcomeSubtitle = completedChallenges.length > 0 && completedChallenges.length < CHALLENGES.length
     ? "¡Qué bueno verte de nuevo! Sigamos con el reto."
-    : "Bienvenido a tu reto de 7 días. ¡Tú puedes!";
+    : `Bienvenido al Reto Sueño Saludable. ¡Tú puedes!`;
 
   return (
     <>
@@ -87,20 +92,55 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {CHALLENGES.map(challenge => (
-            <ChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-              isCompleted={completedChallenges.includes(challenge.id)}
-              onToggleComplete={handleToggleChallenge}
-            />
-          ))}
+        <div className="space-y-12">
+          <section>
+            <h2 className="text-2xl font-bold text-green-400 mb-4 border-b-2 border-green-400/30 pb-2">Fáciles (de aplicación diaria)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {easyChallenges.map(challenge => (
+                <ChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  isCompleted={completedChallenges.includes(challenge.id)}
+                  onToggleComplete={handleToggleChallenge}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-yellow-400 mb-4 border-b-2 border-yellow-400/30 pb-2">🟡 Intermedios</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {mediumChallenges.map(challenge => (
+                <ChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  isCompleted={completedChallenges.includes(challenge.id)}
+                  onToggleComplete={handleToggleChallenge}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-red-400 mb-4 border-b-2 border-red-400/30 pb-2">🔵 Difíciles (retos de constancia)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {hardChallenges.map(challenge => (
+                <ChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  isCompleted={completedChallenges.includes(challenge.id)}
+                  onToggleComplete={handleToggleChallenge}
+                />
+              ))}
+            </div>
+          </section>
         </div>
       </div>
       {showAchievementModalFor && (
         <AchievementModal
-          challenge={showAchievementModalFor}
+          challenge={showAchievementModalFor.challenge}
+          totalCompleted={showAchievementModalFor.totalCompleted}
+          userName={userName}
           onClose={() => setShowAchievementModalFor(null)}
         />
       )}

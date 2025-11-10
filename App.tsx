@@ -2,6 +2,7 @@ import React from 'react';
 import LoginScreen from './components/LoginScreen';
 import Dashboard from './components/Dashboard';
 import Certificate from './components/Certificate';
+import SleepMasterCertificate from './components/SleepMasterCertificate';
 import PublicProfilePage from './components/PublicProfilePage';
 import { CHALLENGES } from './constants';
 import { usePersistentState } from './hooks/usePersistentState';
@@ -9,6 +10,8 @@ import { usePersistentState } from './hooks/usePersistentState';
 const App: React.FC = () => {
   const [userName, setUserName] = usePersistentState<string | null>('userName', null);
   const [completedChallenges, setCompletedChallenges] = usePersistentState<string[]>('completedChallenges', []);
+  const [hasSeen7DayCertificate, setHasSeen7DayCertificate] = usePersistentState<boolean>('hasSeen7DayCertificate', false);
+
 
   const handleLogin = (name: string) => {
     if (name.trim()) {
@@ -19,6 +22,7 @@ const App: React.FC = () => {
   const handleReset = () => {
     setUserName(null);
     setCompletedChallenges([]);
+    setHasSeen7DayCertificate(false);
   };
 
   const toggleChallenge = (challengeId: string) => {
@@ -33,7 +37,9 @@ const App: React.FC = () => {
     return <PublicProfilePage />;
   }
 
-  const allChallengesCompleted = completedChallenges.length === CHALLENGES.length;
+  const completedCount = completedChallenges.length;
+  const allChallengesCompleted = completedCount === CHALLENGES.length;
+  const sevenChallengesCompleted = completedCount >= 7;
 
   const renderContent = () => {
     if (!userName) {
@@ -41,7 +47,17 @@ const App: React.FC = () => {
     }
 
     if (allChallengesCompleted) {
-      return <Certificate userName={userName} onReset={handleReset} />;
+      return <SleepMasterCertificate userName={userName} onReset={handleReset} />;
+    }
+
+    if (sevenChallengesCompleted && !hasSeen7DayCertificate) {
+      return (
+        <Certificate 
+          userName={userName} 
+          onContinue={() => setHasSeen7DayCertificate(true)}
+          onReset={handleReset} 
+        />
+      );
     }
 
     return (
