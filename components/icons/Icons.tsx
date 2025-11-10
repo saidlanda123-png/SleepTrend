@@ -72,6 +72,15 @@ export const BadgeIcon: React.FC<{ className?: string }> = (props) => (
     </svg>
 );
 
+export const TrophyIcon: React.FC<{ className?: string }> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9a9 9 0 119 0zM16.5 18.75a9 9 0 00-9 0m9 0h.008v.008h-.008v-.008zm-9 0h-.008v.008h.008v-.008z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 18.75V15M10.5 15V18.75" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15c-3.314 0-6-2.015-6-4.5 0-2.485 2.686-4.5 6-4.5s6 2.015 6 4.5c0 2.485-2.686 4.5-6 4.5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V3.75m6 3V3.75" />
+    </svg>
+);
+
 
 // New Icons
 export const BellSlashIcon: React.FC<{ className?: string }> = (props) => (

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import ChallengeCard from './ChallengeCard';
 import { CHALLENGES, RANKS } from '../constants';
-import { LinkIcon, BadgeIcon } from './icons/Icons';
+import { LinkIcon, BadgeIcon, TrophyIcon } from './icons/Icons';
 import AchievementModal from './AchievementModal';
 import type { Challenge } from '../types';
 import BadgeSVG from './BadgeSVG';
+import RanksModal from './RanksModal';
 
 interface BadgesModalProps {
   completedChallenges: string[];
@@ -76,6 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
   const [copied, setCopied] = useState(false);
   const [showAchievementModalFor, setShowAchievementModalFor] = useState<{ challenge: Challenge; totalCompleted: number; } | null>(null);
   const [showBadgesModal, setShowBadgesModal] = useState(false);
+  const [showRanksModal, setShowRanksModal] = useState(false);
   const progress = (completedChallenges.length / CHALLENGES.length) * 100;
 
   const handleToggleChallenge = (challengeId: string) => {
@@ -143,12 +145,18 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
         </header>
 
         <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-5 flex flex-col justify-center">
-            <h3 className="text-sm font-semibold text-slate-400 mb-2">Rango Actual</h3>
-            <p className="text-2xl font-bold" style={{ color: currentRank.color }}>
-              {currentRank.name}
-            </p>
-          </div>
+          <button
+            onClick={() => setShowRanksModal(true)}
+            className="bg-slate-800/70 border border-slate-700 rounded-xl p-5 flex items-center justify-between hover:bg-slate-800 transition-colors text-left group"
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-slate-400 mb-2">Rango Actual</h3>
+              <p className="text-2xl font-bold" style={{ color: currentRank.color }}>
+                {currentRank.name}
+              </p>
+            </div>
+            <TrophyIcon className="w-12 h-12 text-slate-600 group-hover:text-yellow-400 transition-colors" />
+          </button>
           <button 
             onClick={() => setShowBadgesModal(true)}
             className="bg-slate-800/70 border border-slate-700 rounded-xl p-5 flex items-center justify-between hover:bg-slate-800 transition-colors text-left group"
@@ -232,6 +240,13 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, completedChallenges, on
           completedChallenges={completedChallenges}
           userName={userName}
           onClose={() => setShowBadgesModal(false)}
+        />
+      )}
+      {showRanksModal && (
+        <RanksModal
+          currentRankName={currentRank.name}
+          completedChallengesCount={completedChallenges.length}
+          onClose={() => setShowRanksModal(false)}
         />
       )}
     </>
